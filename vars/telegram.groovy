@@ -58,8 +58,8 @@ def notifyBuild() {
     }
 
     // Init
-    def config = [:]
-    def message     = [:]
+    def config  = []
+    def message = []
     if (!(env.TELEGRAM_CONFIG != null)) {
         env.TIME_ZONE           = env.TIME_ZONE ?: 'UTC'
         env.TIME_FORMAT         = env.TIME_FORMAT ?: 'yyyy-MM-dd HH:mm:ss z'
