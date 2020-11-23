@@ -98,7 +98,7 @@ def notifyBuild() {
     // Detect reports(Allure,Coverage) 
     def report_coverage = !fileExists('coverage') ? '': "[*\\[Coverage\\]*](${BUILD_URL}Coverage/)"
     def report_alure    = !fileExists('allure-report') ? '': "[*\\[Allure\\]*](${BUILD_URL}allure/)"
-    def reports         = !(report_coverage || report_alure) ? '' : " \n`Reports:  ${report_alure}  ${report_coverage}`"
+    def reports         = !(report_coverage || report_alure) ? '' : " \n`Reports:  `${report_alure}  ${report_coverage}"
 
     
     // Template message
