@@ -58,16 +58,14 @@ def notifyBuild() {
     }
 
     // Init
-    def config  = []
-    def message = []
+    def config  = ['status':'START']
+    def message = ['method':'/sendMessage']
     if (!(env.TELEGRAM_CONFIG != null)) {
         env.TIME_ZONE           = env.TIME_ZONE ?: 'UTC'
         env.TIME_FORMAT         = env.TIME_FORMAT ?: 'yyyy-MM-dd HH:mm:ss z'
-
-        config['status']        = 'START'
+ 
         config['anchor']        = 0
         config['last_duration'] = 0
-        message['method']       = '/sendMessage'
         message['id']           = ''
         message['inline_keyboard']     = []
         config['message']       = message
