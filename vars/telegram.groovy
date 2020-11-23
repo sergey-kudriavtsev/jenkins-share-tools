@@ -96,8 +96,8 @@ def notifyBuild() {
     def stage_duration  = Util.getTimeSpanString((System.currentTimeMillis() - currentBuild.startTimeInMillis) - config.last_duration) //currentBuild.duration - config.last_duration
     
     // Detect reports(Allure,Coverage) 
-    def report_coverage = !fileExists('Coverage') ? '': "[*\\[Coverage\\]*](${BUILD_URL}Coverage/)"
-    def report_alure    = !fileExists('allure') ? '': "[*\\[Allure\\]*](${BUILD_URL}allure/)"
+    def report_coverage = !fileExists('coverage') ? '': "[*\\[Coverage\\]*](${BUILD_URL}Coverage/)"
+    def report_alure    = !fileExists('allure-report') ? '': "[*\\[Allure\\]*](${BUILD_URL}allure/)"
     def reports         = !(report_coverage || report_alure) ? '' : " \n`Reports:  ${report_alure}  ${report_coverage}`"
 
     
@@ -115,7 +115,7 @@ def notifyBuild() {
         "`- ${config.git_email}` \n" +
         "`- ${config.git_time_format}` \n" +
         "`- ${config.git_commit}` \n" +
-        "`${env.TELEGRAM_ADD_NOTIFY_TEXT||'...'}`").stripIndent()
+        "${env.TELEGRAM_ADD_NOTIFY_TEXT ?: '`...`'}").stripIndent()
 
     // Injection of Buttons-stage at inline message
     if ( env.STAGE_NAME == 'Declarative: Post Actions') {
