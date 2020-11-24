@@ -95,7 +95,7 @@ void notifyBuild() {
             git_hash        : shX('git log -1 --pretty=format:%h'),
             git_commit      : shX('git log -1 --pretty=format:%B'),
             git_time        : new Date(Long.valueOf(shX('git log -1 --pretty=format:%ct')) * 1000L),
-            build_time      : buidTime(),
+            build_time      : buidTime,
             message         : message
         ]
         config.git_urlcom        = config.git_url.concat("/commit/${config.git_hash}")
