@@ -68,9 +68,8 @@ void notifyBuild() {
         return
     }
     println 'call telegram.notifyBuild()'
-    Date buidTime = {
-        Jenkins.instance.getItemByFullName(env.JOB_NAME).getBuildByNumber(env.BUILD_NUMBER as Integer).time
-    }
+
+    Date buidTime = Jenkins.instance.getItemByFullName(env.JOB_NAME).getBuildByNumber(env.BUILD_NUMBER as Integer).time
 
     // Init
     if (env.TELEGRAM_CONFIG == null) {
