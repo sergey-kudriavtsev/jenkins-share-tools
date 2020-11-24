@@ -68,7 +68,7 @@ void notifyBuild() {
         return
     }
     println 'call telegram.notifyBuild()'
-    buid_time = {
+    Date buidTime = {
         Jenkins.instance.getItemByFullName(env.JOB_NAME).getBuildByNumber(env.BUILD_NUMBER as Integer).time
     }
 
@@ -96,7 +96,7 @@ void notifyBuild() {
             git_hash        : shX('git log -1 --pretty=format:%h'),
             git_commit      : shX('git log -1 --pretty=format:%B'),
             git_time        : new Date(Long.valueOf(shX('git log -1 --pretty=format:%ct')) * 1000L),
-            build_time      : buid_time,
+            build_time      : buidTime(),
             message         : message
         ]
         config.git_urlcom        = config.git_url.concat("/commit/${config.git_hash}")
