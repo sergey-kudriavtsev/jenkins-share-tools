@@ -4,10 +4,6 @@
 import groovy.json.JsonOutput
 import hudson.Util
 
-String shX(String script) {
-    return sh(returnStdout:true, script:script).trim()
-}
-
 /**
  * Notify method of The Build status in The Telegram chat using a bot
  * @autor Kudriavtsev Sergey
@@ -26,7 +22,9 @@ String shX(String script) {
  * staticMethod java.nio.file.Paths get java.lang.String java.lang.String[]
  * staticMethod jenkins.model.Jenkins getInstance
  *
- * 2) Set the next environment variables
+ * 2) Install your Jenkins HTTP Request Plugin (ID: http_request)
+ *
+ * 3) Set the next environment variables
  *  <CODE>                   - <REQUIRE> - <SPACE>  - <DESCRIPTION>
  *  TELEGRAM_RUN_NOTIFY      - required  - folder   - Enble run Notify
  *  TELEGRAM_CHAT_ID         - required  - folder   - Id of telegram chat(chanal)
@@ -38,7 +36,7 @@ String shX(String script) {
  *  TIME_ZONE                - optional  - folder   - Your time zone, default UTC
  *  TIME_FORMAT              - optional  - folder   - Your time format, default 'yyyy-MM-dd HH:mm:ss z'
  *
- * 3) Use the method in pipeline how post->always
+ * 4) Use the method in pipeline how post->always
  *   example:
  *      @Library('jenkins-share-tools@master') _
  *      def notifyBuild() {
@@ -61,7 +59,6 @@ String shX(String script) {
  *          }
  *      }
 */
-/* groovylint-disable-next-line MethodSize */
 void notifyBuild() {
     // Exit if not activate
     if (!(env.TELEGRAM_RUN_NOTIFY ? env.TELEGRAM_RUN_NOTIFY.toBoolean() : false))  {
@@ -70,8 +67,6 @@ void notifyBuild() {
     println 'call telegram.notifyBuild()'
 
     Date buidTime = Jenkins.instance.getItemByFullName(env.JOB_NAME).getBuildByNumber(env.BUILD_NUMBER as Integer).time
-
-    // Init
     if (env.TELEGRAM_CONFIG == null) {
         env.with {
             TIME_ZONE   = TIME_ZONE ?: 'UTC'
@@ -126,18 +121,7 @@ void notifyBuild() {
     reports         = (report_coverage || report_alure) ? " \n`Reports:  `${report_alure}  ${report_coverage}" : ''
 
     // Template message
-    mes = new StringBuilder()
-    mes .append(" *NEXT\\: ${env.TELEGRAM_BUILD_NAME}*\n")
-        .append("[*Build:  \\[ \\#${BUILD_NUMBER}\\]*](${BUILD_URL})\n")
-        .append("`Time: ${config.build_time_format}`\n")
-        .append("`Duration: ${currentBuild.durationString.replace(' and counting', '')}`\n")
-        .append("`STATUS:` *${build_res}* ${reports}\n")
-        .append('`=========================`\n')
-        .append("`GIT: ` [*\\[${config.git_branch}: ${config.git_hash}\\]*](${config.git_urlcom})\n")
-        .append("`- ${config.git_email}` \n")
-        .append("`- ${config.git_time_format}` \n")
-        .append("`- ${config.git_commit}` \n")
-        .append("${env.TELEGRAM_ADD_NOTIFY_TEXT ?: '`...`'}")
+    mes = templateDefault()
 
     // Injection of Buttons-stage at inline message
     if ( env.STAGE_NAME == 'Declarative: Post Actions') {
@@ -166,17 +150,63 @@ void notifyBuild() {
                         ])
 
     // Send message
+    result = requestMessage(message.method, requestBody)
+    if (result != null) {
+        message.id = result.message_id
+    }
+
+    // Save current config
+    config.last_duration = (System.currentTimeMillis() - currentBuild.startTimeInMillis) //currentBuild.duration
+    env.TELEGRAM_CONFIG = JsonOutput.toJson(config)
+}
+
+/**
+* Utility: Request by Bot
+*/
+Object requestMessage(String metod, String requestBody) {
+    Object result = null
+
     withCredentials([string(credentialsId: env.TELEGRAM_CRED_ID, variable: 'TLEGRAM_TOKEN')]) {
         response =  httpRequest contentType:'APPLICATION_JSON',
-                            httpMode: 'POST',
-                            requestBody: requestBody,
-                            url: 'https://api.telegram.org/bot' + TLEGRAM_TOKEN  + message.method
-        // Save arguments
-        props = readJSON text:response.content
-        message.id = props.result.message_id
-        config.last_duration = (System.currentTimeMillis() - currentBuild.startTimeInMillis) //currentBuild.duration
+                                httpMode: 'POST',
+                                requestBody: requestBody,
+                                url: 'https://api.telegram.org/bot' + TLEGRAM_TOKEN  + metod
 
-        // Save current config
-        env.TELEGRAM_CONFIG = JsonOutput.toJson(config)
+        respons = readJSON(text:response.content)
+        if (respons.error_code ) {
+            println 'TelegramNotify: The error of sending type message:'.concat(metod.replace('/', ''))
+            println 'Error code: '.concat(respons.error_code)
+            println 'Descriptions: '.concat(respons.description)
+        } else {
+            result = respons.result
+        }
     }
+    return result
+}
+
+/**
+* Utility: Getting result output of sh instruction
+*/
+String shX(String script) {
+    return sh(returnStdout:true, script:script).trim()
+}
+
+/**
+* Utility: Getting default template of message
+*/
+String templateDefault() {
+    mes = new StringBuilder()
+    mes .append(" *NEXT\\: ${env.TELEGRAM_BUILD_NAME}*\n")
+        .append("[*Build:  \\[ \\#${BUILD_NUMBER}\\]*](${BUILD_URL})\n")
+        .append("`Time: ${config.build_time_format}`\n")
+        .append("`Duration: ${currentBuild.durationString.replace(' and counting', '')}`\n")
+        .append("`STATUS:` *${build_res}* ${reports}\n")
+        .append('`=========================`\n')
+        .append("`GIT: ` [*\\[${config.git_branch}: ${config.git_hash}\\]*](${config.git_urlcom})\n")
+        .append("`- ${config.git_email}` \n")
+        .append("`- ${config.git_time_format}` \n")
+        .append("`- ${config.git_commit}` \n")
+        .append("${env.TELEGRAM_ADD_NOTIFY_TEXT ?: '`...`'}")
+
+    return mes
 }
