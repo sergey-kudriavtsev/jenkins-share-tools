@@ -69,8 +69,8 @@ void notifyBuild() {
     Date buidTime = Jenkins.instance.getItemByFullName(env.JOB_NAME).getBuildByNumber(env.BUILD_NUMBER as Integer).time
     if (env.TELEGRAM_CONFIG == null) {
         env.with {
-            TIME_ZONE   = TIME_ZONE ?: 'UTC'
-            TIME_FORMAT = TIME_FORMAT ?: 'yyyy-MM-dd HH:mm:ss z'
+            TIME_ZONE   = env.TIME_ZONE ?: 'UTC'
+            TIME_FORMAT = env.TIME_FORMAT ?: 'yyyy-MM-dd HH:mm:ss z'
         }
 
         message = [
@@ -136,7 +136,7 @@ void notifyBuild() {
         // Add current stage name
         message.inline_keyboard.push([[
             text: env.STAGE_NAME + ' :  ' + build_res + " (${stage_duration})",
-            url: BUILD_URL + "consoleText#${config.anchor - 1}"]
+            url: env.BUILD_URL + "consoleText#${config.anchor - 1}"]
         ])
     }
 
@@ -170,7 +170,7 @@ Object requestMessage(String metod, String requestBody) {
         response =  httpRequest contentType:'APPLICATION_JSON',
                                 httpMode: 'POST',
                                 requestBody: requestBody,
-                                url: 'https://api.telegram.org/bot' + TLEGRAM_TOKEN  + metod
+                                url: 'https://api.telegram.org/bot' + env.TLEGRAM_TOKEN  + metod
 
         respons = readJSON(text:response.content)
         if (respons.error_code ) {
