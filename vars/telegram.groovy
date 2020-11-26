@@ -119,8 +119,8 @@ void notifyBuild() {
     report_coverage = fileExists(env.WORKSPACE + 'coverage') ? "[*\\[Coverage\\]*](${BUILD_URL}Coverage/)" : ''
     report_alure    = fileExists(env.WORKSPACE_TMP + 'allure-report') ? "[*\\[Allure\\]*](${BUILD_URL}allure/)" : ''
     reports         = (report_coverage || report_alure) ? " \n`Reports:  `${report_alure}  ${report_coverage}" : ''
-println 'report_coverage:' report_coverage
-println 'report_alure:' report_alure
+println 'report_coverage:' + report_coverage
+println 'report_alure:' + report_alure
 
     // Template message
     mes = templateDefault()
