@@ -116,9 +116,11 @@ void notifyBuild() {
     )
 
     // Detect reports(Allure,Coverage)
-    report_coverage = fileExists(env.WORKSPACE_TMP + 'coverage') ? "[*\\[Coverage\\]*](${BUILD_URL}Coverage/)" : ''
+    report_coverage = fileExists(env.WORKSPACE + 'coverage') ? "[*\\[Coverage\\]*](${BUILD_URL}Coverage/)" : ''
     report_alure    = fileExists(env.WORKSPACE_TMP + 'allure-report') ? "[*\\[Allure\\]*](${BUILD_URL}allure/)" : ''
     reports         = (report_coverage || report_alure) ? " \n`Reports:  `${report_alure}  ${report_coverage}" : ''
+println 'report_coverage:' report_coverage
+println 'report_alure:' report_alure
 
     // Template message
     mes = templateDefault()
@@ -196,12 +198,13 @@ String shX(String script) {
 */
 String templateDefault() {
     mes = new StringBuilder()
+    def status_ = (( build_res == 'UNSTABLE' ) ? '⚪️' : ((build_res == 'SUCCESS') ? '🔴' : '🔵' ))
     mes .append(" *NEXT\\: ${env.TELEGRAM_BUILD_NAME}*\n")
-        .append("[*Build:  \\[ \\#${BUILD_NUMBER}\\]*](${BUILD_URL})\n")
+        .append("${status_} [*Build:  \\[ \\#${BUILD_NUMBER}\\]*](${BUILD_URL})\n")
         .append("`Time: ${config.build_time_format}`\n")
         .append("`Duration: ${currentBuild.durationString.replace(' and counting', '')}`\n")
         .append("`STATUS:` *${build_res}* ${reports}\n")
-        .append('`=========================`\n')
+        .append('⚙️`=======================`\n')
         .append("`GIT: ` [*\\[${config.git_branch}: ${config.git_hash}\\]*](${config.git_urlcom})\n")
         .append("`- ${config.git_email}` \n")
         .append("`- ${config.git_time_format}` \n")
